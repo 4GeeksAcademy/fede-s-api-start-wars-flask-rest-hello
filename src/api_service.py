@@ -76,4 +76,50 @@ def get_favorites_by_user(id):
     if not favorites:
         raise ValueError("There are no favorites added yet")
     else:
-        return [favorite.serialize() for favorite in favorites]
+        return [People.query.filter_by(id=item.favorite_id).first().name if item.favorite_type == "people" else Planet.query.filter_by(id=item.favorite_id).first().name for item in favorites ]
+    
+
+def add_favorite(id, type, user_id):
+    existing_favorite = Favorite.query.filter_by(favorite_id=id, favorite_type=type, user_id=user_id).first()
+
+    if existing_favorite:
+        raise ValueError("This item is added already as a favorite")
+    
+    if type == 'planet':
+        range_planets = Planet.query.filter_by(id=id).first()
+        if not range_planets:
+            raise ValueError("There are no planets with this id")
+    elif type == 'people':
+        range_people = People.query.filter_by(id=id).first()
+        if not range_people:
+            raise ValueError("There are no people with this id")
+
+    new_fav = Favorite(user_id=user_id, favorite_type=type, favorite_id=id)
+
+    db.session.add(new_fav)
+    db.session.commit()
+
+    return new_fav.serialize()
+
+
+def delete_favorite(id, type, user_id):
+
+    if type == 'planet':
+        range_planets = Planet.query.filter_by(id=id).first()
+        if not range_planets:
+            raise ValueError("There are no planets with this id")
+    elif type == 'people':
+        range_people = People.query.filter_by(id=id).first()
+        if not range_people:
+            raise ValueError("There are no people with this id")
+
+    existing_favorite = Favorite.query.filter_by(favorite_id=id, favorite_type=type, user_id=user_id).first()
+
+    if not existing_favorite:
+        raise ValueError("This item doesn't exist as a favorite")
+    
+
+    db.session.delete(existing_favorite)
+    db.session.commit()
+
+    return True

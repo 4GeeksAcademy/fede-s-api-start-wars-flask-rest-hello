@@ -9,7 +9,7 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User
-from api_service import get_all_people, add_people, add_planet, get_all_planets, get_all_users, get_favorites_by_user
+from api_service import get_all_people, add_people, add_planet, get_all_planets, get_all_users, get_favorites_by_user, add_favorite, delete_favorite
 # from models import Person
 
 app = Flask(__name__)
@@ -145,6 +145,37 @@ def get_user_favorites():
         return jsonify({"favorites": favorites}), 200
     except Exception as e:
         return jsonify({"msg": str(e)}), 400
+
+
+@app.route('/favorite/<string:type>/<int:id>', methods=["POST"])
+def add_favorites(type, id):
+    
+    if type not in ["planet", "people"]:
+        return jsonify({"msg": "Try adding a 'planet' or 'people'"}), 400
+    
+    try:
+        new_favorite = add_favorite(id, type, 1)
+        return jsonify(new_favorite), 201
+    
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 400
+    
+
+
+@app.route('/favorite/<string:type>/<int:id>', methods=["DELETE"])
+def delete_favorites(type, id):
+    
+    if type not in ["planet", "people"]:
+        return jsonify({"msg": "Try with a 'planet' or 'people'"}), 400
+    
+    try:
+        delete_favorite(id, type, 1)
+        return jsonify({"msg": "Item delete successfully"}), 200
+    
+    except Exception as e:
+        return jsonify({"msg": str(e)}), 400
+
+
 
 
 # this only runs if `$ python src/app.py` is executed
